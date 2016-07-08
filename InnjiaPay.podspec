@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.platform       = :ios
   s.author         = {'onexf' => '630850673@qq.com'}
   s.ios.deployment_target = '8.0'
-  s.source         = {:git => 'https://github.com/onexf/InnjiaPay.git', :tag => s.version}
+  s.source         = {:git => 'https://github.com/onexf/InnjiaPay.git', :tag => '0.0.1'}
   s.source_files   = 'InnjiaPaySDK.{h,m}'
   s.frameworks     = 'UIKit'
 end
