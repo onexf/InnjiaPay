@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name           = 'InnjiaPay'
-  s.verson         = '0.0.1'
+  s.version         = '0.0.1'
   s.summary        = 'An easy way to pay'
   s.homepage       = 'https://github.com/onexf/InnjiaPay'
   s.license        = 'MIT'
