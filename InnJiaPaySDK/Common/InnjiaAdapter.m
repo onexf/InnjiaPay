@@ -55,14 +55,6 @@
     return NO;
 }
 
-+ (NSString *)innjiaBaiduPay:(NSMutableDictionary *)dic {
-    id adapter = [[NSClassFromString(kAdapterBaidu) alloc] init];
-    if (adapter && [adapter respondsToSelector:@selector(baiduPay:)]) {
-        return [adapter baiduPay:dic];
-    }
-    return nil;
-}
-
 + (BOOL)innjiaAliPay:(NSMutableDictionary *)dic andBody:(PayBody *)body
 {
     id adapter = [[NSClassFromString(kAdapterAliPay) alloc] init];

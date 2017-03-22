@@ -12,11 +12,9 @@
 #import "GenerateOrderstring.h"
 #import "InnjiaPayCache.h"
 #import "InnjiaPayResp.h"
+#import "BCNetworking.h"
 #import "AliKeysManager.h"
 #import "NSString+IsValid.h"
-#import "InnjiaPayTool.h"
-#import "TokenTool.h"
-#import "AFNetWorking.h"
 
 @implementation PayBody
 
@@ -29,9 +27,18 @@
         self.totalFee = @"";
         self.billNo = @"";
         self.scheme = @"";
+        self.quantity = @"1";
     }
     return self;
 }
+#if 0
+
+#endif
+
+//- (NSString *)billNo
+//{
+//    return [_billNo substringWithRange:NSMakeRange(15, 32)];
+//}
 - (void)payReq
 {
     //设置回调响应体的请求体
@@ -47,7 +54,14 @@
     parameters[@"identification"] = cType;
     parameters[@"total_fee"] = [NSString stringWithFormat:@"%.2f", self.totalFee.floatValue];
     parameters[@"bill_no"] = self.billNo;
+    if (self.title.length > 6) {
+        self.title = [self.title substringToIndex:5];
+    }
     parameters[@"title"] = self.title;
+    
+    parameters[@"quantity"] = self.quantity;
+    parameters[@"returnType"] = @"url";
+
     //添加参数
     if (self.optional) {
         parameters[@"optional"] = self.optional;
@@ -58,25 +72,8 @@
     BOOL keysValid = aliKeys.partner.isValid && aliKeys.seller.isValid && aliKeys.notifyURL.isValid && aliKeys.privateKey.isValid;
     //有SDK后台
     if (flag) {
-        id <InnjiaPayDelegate> delegate = [InnjiaPayTool getInnjiaDelegate];
-        if (delegate && [delegate respondsToSelector:@selector(startPaying)]) {
-            [delegate startPaying];
-        }
-        TokenTool *tokens = [TokenTool sharedTokenTool];
-        if (tokens.body == self) {
-            if ([tokens.aliPayInfo[@"identification"] isEqualToString:cType]) {
-                [self getPayInfoWithDict:tokens.aliPayInfo];
-            } else if ([tokens.wxPayInfo[@"identification"] isEqualToString:cType]) {
-                [self getPayInfoWithDict:tokens.wxPayInfo];
-            } else {
-                [self getTokenWithDict:parameters];
-            }
-        } else {
-            tokens.aliPayInfo = nil;
-            tokens.wxPayInfo = nil;
-            tokens.body = nil;
-            [self getTokenWithDict:parameters];
-        }
+        [self getTokenWithDict:parameters];
+//        [self doPayAction:parameters];
     }
     //无sdk后台，且配置了alikeys
     if (!flag && keysValid) {
@@ -88,49 +85,50 @@
 - (void)getTokenWithDict:(NSDictionary *)parameters
 {
     TokenUrls *urls = [TokenUrls sharedUrlInstance];
-    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    BCHTTPSessionManager *manager = [BCHTTPSessionManager manager];
     manager.requestSerializer.timeoutInterval = 5;
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"text/html",@"application/json",nil];
-    [manager POST:urls.tokenUlr parameters:parameters progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if ([[responseObject valueForKey:@"code"] isEqualToString:@"0000"]) {
-            NSString *cType = [InnjiaPayUtil getChannelString:self.channel];
-            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)responseObject];
-            dict[@"identification"] = cType;
-            TokenTool *tokens = [TokenTool sharedTokenTool];
-            tokens.body = self;
-            if ([cType isEqualToString:@"alipay"]) {
-                tokens.aliPayInfo = dict;
-            }
-            if ([cType isEqualToString:@"wxpayTest"]) {
-                tokens.wxPayInfo = dict;
-            }
-            [self getPayInfoWithDict:dict];
-        } else {
-            [InnjiaPayUtil doErrorResponse:@"网络请求失败"];
-        }
-
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        [InnjiaPayUtil doErrorResponse:@"网络请求失败"];
-    }];
+    [manager POST:urls.tokenUlr parameters:parameters progress:nil
+           success:^(NSURLSessionTask *task, id response) {
+               /*
+                * 0000 成功
+                * 0001 该账号无绑定支付账号
+                * 0002 无效的projectId
+                * 0003 accessToken 已失效
+                * 0004 无效的支付渠道
+                * 0005 订单已经支付
+                * 0006 唯一订单号格式不正确
+                * 0007 TOKEN不能为空
+                */
+               if ([[response valueForKey:@"code"] isEqualToString:@"0000"]) {
+                   [self getPayInfoWithDict:(NSDictionary *)response];
+               } else {
+                   [InnjiaPayUtil doErrorResponse:@"网络异常"];
+               }
+           } failure:^(NSURLSessionTask *operation, NSError *error) {
+               [InnjiaPayUtil doErrorResponse:@"网络异常"];
+           }];
+    
+    
 }
 
 - (void)getPayInfoWithDict:(NSDictionary *)response
 {
     TokenUrls *urls = [TokenUrls sharedUrlInstance];
-    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    BCHTTPSessionManager *manager = [BCHTTPSessionManager manager];
     manager.requestSerializer.timeoutInterval = 5;
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"text/html",@"application/json",nil];
-
-    [manager POST:urls.payInfoUrl parameters:response progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if ([[responseObject valueForKey:@"code"] isEqualToString:@"0000"]) {
-            [self doPayAction:(NSDictionary *)responseObject];
-        } else {
-            [InnjiaPayUtil doErrorResponse:@"网络请求失败"];
-        }
-        
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        [InnjiaPayUtil doErrorResponse:@"网络请求失败"];
-    }];
+    NSDictionary *dict = @{@"accessToken" : response[@"accessToken"]};
+    [manager POST:urls.payInfoUrl parameters:dict progress:nil
+          success:^(NSURLSessionTask *task, id response) {
+              if ([[response valueForKey:@"code"] isEqualToString:@"0000"]) {
+                  [self doPayAction:(NSDictionary *)response];
+              } else {
+                  [InnjiaPayUtil doErrorResponse:@"网络异常"];
+              }
+          } failure:^(NSURLSessionTask *operation, NSError *error) {
+              [InnjiaPayUtil doErrorResponse:@"网络异常"];
+          }];
+    
+    
 }
 
 - (BOOL)doPayAction:(NSDictionary *)response
@@ -150,20 +148,14 @@
                 bSendPay = flag?[InnjiaAdapter innjiaWXPay:dic]:[InnjiaAdapter innjiaWXPay:dic andBody:self];
             }
                 break;
-            case PayChannelBaiduApp:
-                bSendPay = [InnjiaAdapter innjiaBaiduPay:dic].isValid;
-                break;
-                //支付宝支付要放到后面
             case PayChannelAliApp:
             {
                 bSendPay = flag?[InnjiaAdapter innjiaAliPay:dic]:[InnjiaAdapter innjiaAliPay:dic andBody:self];
             }
+                break;
             default:
                 break;
         }
-    }
-    if (!bSendPay) {
-        [InnjiaPayUtil doErrorResponse:@"订单信息验证错误"];
     }
     return bSendPay;
 }

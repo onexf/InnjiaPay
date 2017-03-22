@@ -18,8 +18,6 @@
 
 #import "InnjiaPayUtil.h"
 #import "ApiXml.h"
-#import "InnjiaPayTool.h"
-#import "TokenTool.h"
 @interface InnjiaWXPayAdapter ()<InnjiaAdapterDelegate, WXApiDelegate>
 
 @end
@@ -56,12 +54,6 @@
         int errcode = 0;
         switch (tempResp.errCode) {
             case WXSuccess:
-            {
-                TokenTool *tokens = [TokenTool sharedTokenTool];
-                tokens.aliPayInfo = nil;
-                tokens.wxPayInfo = nil;
-                tokens.body = nil;
-            }
                 strMsg = @"支付成功";
                 errcode = InnjiaErrCodeSuccess;
                 break;
@@ -94,10 +86,6 @@
     request.timeStamp = time.intValue;
     request.sign = [dic stringValueForKey:@"sign" defaultValue:@""];
     BOOL result = [WXApi sendReq:request];
-    id <InnjiaPayDelegate> delegate = [InnjiaPayTool getInnjiaDelegate];
-    if (delegate && [delegate respondsToSelector:@selector(raiseUpPayingAPP)]) {
-        [delegate raiseUpPayingAPP];
-    }
     return result;
 }
 

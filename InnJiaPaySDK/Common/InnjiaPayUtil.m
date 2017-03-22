@@ -18,16 +18,16 @@
 #if DEBUG
             cType = @"wxpayTest";
 #else
-            cType = @"INNJIAWXpay";
+            cType = @"LBLSWXpay";
 #endif
             break;
         case PayChannelAliApp:
+#if DEBUG
             cType = @"alipay";
+#else
+            cType = @"LBLSalipayFormal";
+#endif
             break;
-        case PayChannelBaiduApp:
-            cType = @"baidupay";
-            break;
-            
         default:
             break;
     }

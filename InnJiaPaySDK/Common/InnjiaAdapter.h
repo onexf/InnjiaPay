@@ -8,8 +8,6 @@
 
 static NSString * const kAdapterAliPay = @"InnjiaAliPayAdapter";
 static NSString * const kAdapterWXPay = @"InnjiaWXPayAdapter";
-static NSString * const kAdapterBaidu = @"InnjiaBaiduPayAdapter";
-
 #import <Foundation/Foundation.h>
 @class PayBody;
 @interface InnjiaAdapter : NSObject
@@ -54,9 +52,4 @@ static NSString * const kAdapterBaidu = @"InnjiaBaiduPayAdapter";
  *  @return 结果
  */
 + (BOOL)innjia:(NSString *)object handleOpenUrl:(NSURL *)url;
-/**
- *  BY WXF
- *  百度支付 
- */
-+ (NSString *)innjiaBaiduPay:(NSMutableDictionary *)dic;
 @end

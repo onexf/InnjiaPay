@@ -13,17 +13,28 @@
 typedef NS_ENUM(NSInteger, PayChannel) {
     PayChannelNone = 0,
     
-//    PayChannelWx = 10, //微信
+    //    PayChannelWx = 10, //微信
     PayChannelWxApp,//微信APP
     
-//    PayChannelAli = 20,//支付宝
+    //    PayChannelAli = 20,//支付宝
     PayChannelAliApp,//支付宝APP
     
-//    PayChannelBaidu = 50,//百度
+    //    PayChannelBaidu = 50,//百度
     PayChannelBaiduApp,//百度钱包
-
-//    PayChannelInnjiaWallet = 998,//钱包
+    
+    //    PayChannelInnjiaWallet = 998,//钱包
 };
+
+/**
+ *  商品类型
+ */
+typedef NS_ENUM(NSInteger, GoodsType) {
+    GoodsTypeDefault = 0,
+    
+    GoodsTypeFangZu,//房租
+    
+};
+
 @interface PayBody : NSObject
 /** 支付渠道 */
 @property (nonatomic, assign) PayChannel channel;
@@ -40,6 +51,10 @@ typedef NS_ENUM(NSInteger, PayChannel) {
  */
 @property (nonatomic, copy, nonnull) NSString *billNo;
 /**
+ 商品数量
+ */
+@property (nonatomic,copy,nonnull)NSString *quantity;
+/**
  *  调用支付的app注册在info.plist中的scheme,支付宝支付必填
  */
 @property (nonatomic, retain, nullable) NSString *scheme;
@@ -48,7 +63,7 @@ typedef NS_ENUM(NSInteger, PayChannel) {
  */
 @property (nonatomic, retain, nullable) NSMutableDictionary *optional;
 
-
+@property (nonatomic,assign)GoodsType goodsType;
 
 /**
  *  发起支付，签名暂时在本地

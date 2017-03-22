@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "InnjiaPayResp.h"
+#import "XMGConst.h"
 //@class InnjiaPayResp, PayBody;
 
 @protocol InnjiaPayDelegate <NSObject>
@@ -18,11 +19,6 @@
  *  @param resp 响应体，不同类型的请求，对应不同的响应
  */
 - (void)innjiaPayResp:(InnjiaPayResp *)resp;
-@optional
-/** 唤起客户端 */
-- (void)raiseUpPayingAPP;
-/** 发起支付 */
-- (void)startPaying;
 
 @end
 

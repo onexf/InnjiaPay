@@ -1,4 +1,16 @@
 ## iOS支付SDK使用文档
+
+SDK后台错误代码
+/*
+* 0000 成功
+* 0001 该账号无绑定支付账号
+* 0002 无效的projectId
+* 0003 accessToken 已失效
+* 0004 无效的支付渠道
+* 0005 订单已经支付
+* 0006 唯一订单号格式不正确
+* 0007 TOKEN不能为空
+*/
 1 .在AppDelegate.m中
 
     #import "InnjiaPayTool.h"
@@ -60,15 +72,4 @@
         //支付成功
         }
     }
-
-
-###  新加代理方法，可以更严谨的去控制支付流程
-
-	/** 发起支付 */
-	- (void)startPaying;//可以在这里转圈圈，做一些发起支付时的操作
-	/** 唤起客户端 */
-	- (void)raiseUpPayingAPP;//调起支付app，取消圈圈以及做一些成功发起支付后的操作
-	配合支付完成的回调方法 
-	- (void)innjiaPayResp:(InnjiaPayResp *)resp;可以控制从开始支付到支付完成的每一步细节
-
 

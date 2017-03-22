@@ -14,8 +14,6 @@
 #import "InnjiaPayResp.h"
 #import "InnjiaPayCache.h"
 #import "GenerateOrderstring.h"
-#import "InnjiaPayTool.h"
-#import "TokenTool.h"
 @interface InnjiaAliPayAdapter ()<InnjiaAdapterDelegate>
 
 @end
@@ -56,12 +54,11 @@
 {
     //签名
     dic[@"order_string"] = [GenerateOrderstring getOrderStingWithOrderSpec:[dic stringValueForKey:@"orderData" defaultValue:@""] privateKey:[dic stringValueForKey:@"RSA_PRIVATE" defaultValue:@""]];
+    
+//    NSString *orderString = [dic stringValueForKey:@"orderData" defaultValue:@""];
+//    NSString *scheme = [dic stringValueForKey:@"scheme" defaultValue:@""];
     NSString *orderString = [dic stringValueForKey:@"order_string" defaultValue:@""];
     NSString *scheme = [dic stringValueForKey:@"scheme" defaultValue:@""];
-    id <InnjiaPayDelegate> delegate = [InnjiaPayTool getInnjiaDelegate];
-    if (delegate && [delegate respondsToSelector:@selector(raiseUpPayingAPP)]) {
-        [delegate raiseUpPayingAPP];
-    }
     if (orderString.isValid) {
         [[AlipaySDK defaultService] payOrder:orderString fromScheme:scheme callback:^(NSDictionary *resultDic) {
             [[InnjiaAliPayAdapter sharedInstance] processOrderForAliPay:resultDic];
@@ -84,12 +81,6 @@
     int errcode = 0;
     switch (status) {
         case 9000:
-        {
-            TokenTool *tokens = [TokenTool sharedTokenTool];
-            tokens.aliPayInfo = nil;
-            tokens.wxPayInfo = nil;
-            tokens.body = nil;
-        }
             strMsg = @"支付成功";
             errcode = InnjiaErrCodeSuccess;
             break;

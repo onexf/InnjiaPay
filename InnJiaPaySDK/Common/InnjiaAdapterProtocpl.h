@@ -45,11 +45,6 @@
 - (BOOL)aliPay:(NSMutableDictionary *)dic;
 
 - (BOOL)aliPay:(NSMutableDictionary *)dic andBody:(PayBody *)body;
-/**
- *  BY WXF
- *  2016-9-19
- *  百度支付
- */
-- (NSString *)baiduPay:(NSMutableDictionary *)dic;
+
 
 @end
